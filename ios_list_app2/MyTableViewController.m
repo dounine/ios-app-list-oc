@@ -125,12 +125,16 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     // 返回单元格
     UITableViewCell *cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@(indexPath.row)];
-//    cell.textLabel.text = @"hello";
     NSMutableDictionary *app = self.dataSource[indexPath.row];
     cell.textLabel.text = app[@"name"];
     cell.detailTextLabel.text = [app[@"bundleID"] stringByAppendingString:[@" " stringByAppendingString: app[@"version"]]];
     
     cell.image = [UIImage _applicationIconImageForBundleIdentifier:app[@"bundleID"] format:self.iconFormat scale:[UIScreen mainScreen].scale];
+    
+    UIImage *uiImage = [UIImage _applicationIconImageForBundleIdentifier:app[@"bundleID"] format:self.iconFormat scale:[UIScreen mainScreen].scale];
+    NSData *_data = UIImagePNGRepresentation(uiImage);
+    NSString *_encodedImageStr = [_data base64Encoding];
+//    NSLog(@"\nbase64图片数据 %@",_encodedImageStr);
 //        if (indexPath.section == 0) {
 //            if (indexPath.row == 0) {
 //                cell.textLabel.text = @"你好吗??";
