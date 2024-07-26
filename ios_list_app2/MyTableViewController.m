@@ -10,6 +10,7 @@
 #import <objc/runtime.h>
 @implementation MyTableViewController
 
+
 - (NSString*)version:(NSObject*)app{
     NSString *name = [app performSelector:@selector(shortVersionString)];
     return name;
@@ -20,6 +21,9 @@
 }
 -(void)openBundleID:(NSString*)bundleID{
     [self.workspace performSelector:@selector(openApplicationWithBundleID:) withObject:bundleID];
+}
+-(void)uninstallApp:(NSString*)bundleID{
+    [self.workspace performSelector:@selector(uninstallApplication:withOptions:) withObject:bundleID withObject:nil];
 }
 - (NSString *)displayName:(NSObject*)app {
     NSString *name = [app performSelector:@selector(itemName)];
@@ -130,25 +134,47 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 80.0f;
 }
+
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    UIAlertController *alert;
     NSMutableDictionary *app = self.dataSource[indexPath.row];
-    alert = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"是否打开：%@\n", app[@"name"]] preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
-        UIAlertAction *decrypt = [UIAlertAction actionWithTitle:@"确定"
-                                                          style:UIAlertActionStyleDefault
-                                                        handler:^(UIAlertAction *action) {
-//                                                            NSMutableDictionary *callback = [NSMutableDictionary dictionary];
-//                                                            decryptApp(app, callback);
-//            NSLog(@"%@",app[@"bundleID"]);
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:nil
+                                                                       message:nil
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"打开应用" style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * action) {
             [self openBundleID:app[@"bundleID"]];
-                                                        }];
-
-        [alert addAction:decrypt];
-        [alert addAction:cancel];
-    //    }
-
+        }];
+//        UIAlertAction* defaultAction1 = [UIAlertAction actionWithTitle:@"卸载应用" style:UIAlertActionStyleDefault
+//                                                              handler:^(UIAlertAction * action) {
+//            [self uninstallApp:app[@"bundleID"]];
+//        }];
+        UIAlertAction* defaultAction2 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:defaultAction];
+//        [alert addAction:defaultAction1];
+        [alert addAction:defaultAction2];
         [self presentViewController:alert animated:YES completion:nil];
+    
+//    UIAlertController *alert;
+//    NSMutableDictionary *app = self.dataSource[indexPath.row];
+//    alert = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"是否打开：%@\n", app[@"name"]] preferredStyle:UIAlertControllerStyleAlert];
+//        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+//        UIAlertAction *decrypt = [UIAlertAction actionWithTitle:@"确定"
+//                                                          style:UIAlertActionStyleDefault
+//                                                        handler:^(UIAlertAction *action) {
+////                                                            NSMutableDictionary *callback = [NSMutableDictionary dictionary];
+////                                                            decryptApp(app, callback);
+////            NSLog(@"%@",app[@"bundleID"]);
+//            [self openBundleID:app[@"bundleID"]];
+//                                                        }];
+//
+//        [alert addAction:decrypt];
+//        [alert addAction:cancel];
+//    //    }
+//
+//        [self presentViewController:alert animated:YES completion:nil];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
