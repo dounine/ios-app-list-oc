@@ -13,4 +13,5 @@
 
 @interface MyTableViewController : UITableViewController
 @property (nonatomic,strong) NSMutableArray *dataSource;
+@property (nonatomic,strong) NSObject* workspace;
 @end

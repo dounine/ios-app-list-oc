@@ -18,6 +18,9 @@
     NSString *name = [app performSelector:@selector(bundleIdentifier)];
     return name;
 }
+-(void)openBundleID:(NSString*)bundleID{
+    [self.workspace performSelector:@selector(openApplicationWithBundleID:) withObject:bundleID];
+}
 - (NSString *)displayName:(NSObject*)app {
     NSString *name = [app performSelector:@selector(itemName)];
     NSString *localizedName = name;
@@ -52,11 +55,13 @@
     }
     return localizedName;
 }
-
--(NSMutableArray*)appList{
+-(void)initWorkspace{
     Class lsawsc = objc_getClass("LSApplicationWorkspace");
     NSObject *workspace = [lsawsc performSelector:@selector(defaultWorkspace)];
-    NSArray *plugins = [workspace performSelector:@selector(installedPlugins)]; //列出所有plugins
+    self.workspace = workspace;
+}
+-(NSMutableArray*)appList{
+    NSArray *plugins = [self.workspace performSelector:@selector(installedPlugins)]; //列出所有plugins
     NSMutableSet *list = [[NSMutableSet alloc] init];
     for (NSObject* plugin in plugins) {
         id bundle = [plugin performSelector:@selector(containingBundle)];
@@ -108,7 +113,7 @@
     //设置tableView的Delegate
     tableView.delegate = self;
     //    tableView.separatorInset = UIEdgeInsetsMake(10,10,10,10);
-    
+    [self initWorkspace];
     self.dataSource = [self appList];
     [self.view addSubview:tableView];
     
@@ -122,12 +127,37 @@
 - (NSUInteger)iconFormat {
     return (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) ? 8 : 10;
 }
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 80.0f;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    UIAlertController *alert;
+    NSMutableDictionary *app = self.dataSource[indexPath.row];
+    alert = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"是否打开：%@\n", app[@"name"]] preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+        UIAlertAction *decrypt = [UIAlertAction actionWithTitle:@"确定"
+                                                          style:UIAlertActionStyleDefault
+                                                        handler:^(UIAlertAction *action) {
+//                                                            NSMutableDictionary *callback = [NSMutableDictionary dictionary];
+//                                                            decryptApp(app, callback);
+//            NSLog(@"%@",app[@"bundleID"]);
+            [self openBundleID:app[@"bundleID"]];
+                                                        }];
+
+        [alert addAction:decrypt];
+        [alert addAction:cancel];
+    //    }
+
+        [self presentViewController:alert animated:YES completion:nil];
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     // 返回单元格
     UITableViewCell *cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@(indexPath.row)];
     NSMutableDictionary *app = self.dataSource[indexPath.row];
     cell.textLabel.text = app[@"name"];
     cell.detailTextLabel.text = [app[@"bundleID"] stringByAppendingString:[@" " stringByAppendingString: app[@"version"]]];
+    
     
     cell.image = [UIImage _applicationIconImageForBundleIdentifier:app[@"bundleID"] format:self.iconFormat scale:[UIScreen mainScreen].scale];
     
